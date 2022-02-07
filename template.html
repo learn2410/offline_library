@@ -11,22 +11,29 @@
   <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
           integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
           crossorigin="anonymous"></script>
+
 </head>
 <body>
-<p>hello111</p>
-{% for k,v in catalog.items() %}
-<div class="card mb-3" style="max-width: 540px;">
-  <div class="row no-gutters">
-    <div class="col-md-4">
-      <img src="{{ v['img_src'] }}" class="card-img" alt="обложка">
-    </div>
-    <div class="col-md-8">
-      <div class="card-body">
-        <h5 class="card-title">{{ v['title'] }}</h5>
-        <p class="card-text">{{ v['autor'] }}</p>
-        <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+
+{% for pair in catalog %}
+<div class="container">
+  <div class="row">
+    {% for book in pair %}
+      <div class="card mb-3" style="max-width: 540px;">
+        <div class="row no-gutters">
+          <div class="col-md-4">
+            <img src="{{ book['img_src'] }}" class="card-img" alt="обложка">
+          </div>
+          <div class="col-md-8">
+            <div class="card-body">
+              <h5 class="card-title">{{ book['title'] }}</h5>
+              <p class="card-text">{{ book['autor'] }}</p>
+              <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    {% endfor %}
   </div>
 </div>
 {% endfor %}

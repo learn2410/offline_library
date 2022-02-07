@@ -4,6 +4,7 @@ import os
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from livereload import Server
+from more_itertools import chunked
 
 LIB_DIR = 'library'
 TEXTS_SUBDIR = 'books'
@@ -16,9 +17,9 @@ def load_json(json_path):
             catalog = json.load(file)
     else:
         catalog = {}
-    for v in catalog.values():
+    for book in catalog.values():
         for key in ['img_src', 'book_path']:
-            v.update({key: v[key].replace('\\', '/')})
+            book.update({key: book[key].replace('\\', '/')})
     return catalog
 
 
@@ -30,7 +31,7 @@ def on_reload():
         autoescape=select_autoescape(['html', 'xml'])
     )
     template = env.get_template('template.html')
-    rendered_page = template.render(catalog=catalog)
+    rendered_page = template.render(catalog=list(chunked(catalog.values(),2)))
     with open('index.html', 'w', encoding="utf8") as file:
         file.write(rendered_page)
 
