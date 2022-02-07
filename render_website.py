@@ -1,12 +1,14 @@
-from http.server import HTTPServer, SimpleHTTPRequestHandler
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-import os
 import json
-import webbrowser
+import os
+
+
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+from livereload import Server
 
 LIB_DIR = 'library'
 TEXTS_SUBDIR = 'books'
 IMAGES_SUBDIR = 'images'
+
 
 def load_json(json_path):
     if os.path.exists(json_path) and os.path.isfile(json_path):
@@ -15,28 +17,29 @@ def load_json(json_path):
     else:
         catalog = {}
     for v in catalog.values():
-        for key in ['img_src','book_path']:
-            v.update({key:v[key].replace('\\','/')})
+        for key in ['img_src', 'book_path']:
+            v.update({key: v[key].replace('\\', '/')})
     return catalog
 
-def main():
+
+def on_reload():
+    json_path = os.path.join(LIB_DIR, 'catalog.json')
+    catalog = load_json(json_path)
     env = Environment(
         loader=FileSystemLoader('.'),
         autoescape=select_autoescape(['html', 'xml'])
     )
-
-    json_path=os.path.join(LIB_DIR, 'catalog.json')
-    catalog=load_json(json_path)
-
     template = env.get_template('template.html')
-    rendered_page = template.render(catalog=catalog )
-
+    rendered_page = template.render(catalog=catalog)
     with open('index.html', 'w', encoding="utf8") as file:
         file.write(rendered_page)
 
-    server = HTTPServer(('0.0.0.0', 8000), SimpleHTTPRequestHandler)
-    webbrowser.open('http://127.0.0.1:8000', new=0, autoraise=True)
-    server.serve_forever()
+
+def main():
+    on_reload()
+    server = Server()
+    server.watch('template.html', on_reload)
+    server.serve(root='.')
 
 
 if __name__ == '__main__':
