@@ -9,7 +9,7 @@ from more_itertools import chunked
 LIB_DIR = 'library'
 TEXTS_SUBDIR = 'books'
 IMAGES_SUBDIR = 'images'
-
+PAGES_SUBDIR='pages'
 
 def load_json(json_path):
     if os.path.exists(json_path) and os.path.isfile(json_path):
@@ -19,9 +19,8 @@ def load_json(json_path):
         catalog = {}
     for book in catalog.values():
         for key in ['img_src', 'book_path']:
-            book.update({key: book[key].replace('\\', '/')})
+            book.update({key:'../../'+ book[key].replace('\\', '/')})
     return catalog
-
 
 def on_reload():
     json_path = os.path.join(LIB_DIR, 'catalog.json')
@@ -31,16 +30,18 @@ def on_reload():
         autoescape=select_autoescape(['html', 'xml'])
     )
     template = env.get_template('template.html')
-    rendered_page = template.render(catalog=list(chunked(catalog.values(),2)))
-    with open('index.html', 'w', encoding="utf8") as file:
-        file.write(rendered_page)
+    for page_num,books in enumerate(list(chunked(catalog.values(),20))):
+        rendered_page = template.render(catalog=chunked(books,2))
+        with open(f'{LIB_DIR}/{PAGES_SUBDIR}/index{page_num+1}.html', 'w', encoding="utf8") as file:
+            file.write(rendered_page)
 
 
 def main():
+    os.makedirs(f'{LIB_DIR}/{PAGES_SUBDIR}', exist_ok=True)
     on_reload()
     server = Server()
     server.watch('template.html', on_reload)
-    server.serve(root='.')
+    server.serve()
 
 
 if __name__ == '__main__':
