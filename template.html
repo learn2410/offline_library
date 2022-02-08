@@ -13,33 +13,56 @@
           crossorigin="anonymous"></script>
 
 </head>
-<body>
-
-{% for pair in catalog %}
+<body style="padding-top:70px;">
 <div class="container">
-  <div class="row">
-    {% for book in pair %}
-      <div class="card mb-3" style="max-width: 540px;">
-        <div class="row no-gutters">
-          <div class="col-md-4">
-            <img src="{{ book['img_src']|urlencode }}" class="card-img" alt="обложка">
-          </div>
-          <div class="col-md-8">
-            <div class="card-body">
-              <h5 class="card-title">{{ book['title'] }}</h5>
-              <p class="card-text">{{ book['autor'] }}</p>
-              <p class="card-text">
-                <small class="text-muted">
-                  <a href="{{ book['book_path']|urlencode }}" target="_blank" hreflang="ru"> читать  </a>
-                </small>
-              </p>
+  <nav class="navbar navbar-light bg-info fixed-top">
+    <div class="container-fluid justify-content-center">
+      <ul class="pagination justify-content-center pagination-sm">
+        {% for page in paginator %}
+          {% if page[1] == '' %}
+            <li class="page-item disabled">
+              <span class="page-link">{{ page[0] }}</span>
+            </li>
+          {% elif page[1] == '#' %}
+            <li class="page-item active" aria-current="page">
+              <span class="page-link"> {{ page[0] }} </span>
+            </li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link" href="{{ page[1] }}">{{ page[0] }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+  </nav>
+</div>
+
+<div class="container">
+  {% for pair in catalog %}
+    <div class="row justify-content-center">
+      {% for book in pair %}
+        <div class="card mb-3" style="max-width: 540px;">
+          <div class="row no-gutters">
+            <div class="col-md-4">
+              <img src="{{ book['img_src']|urlencode }}" class="card-img" alt="обложка">
+            </div>
+            <div class="col-md-8">
+              <div class="card-body">
+                <h5 class="card-title">{{ book['title'] }}</h5>
+                <p class="card-text">{{ book['autor'] }}</p>
+                <p class="card-text">
+                  <small class="text-muted">
+                    <a href="{{ book['book_path']|urlencode }}" target="_blank" hreflang="ru"> читать </a>
+                  </small>
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    {% endfor %}
-  </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
 </div>
-{% endfor %}
 </body>
 </html>
