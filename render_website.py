@@ -1,6 +1,7 @@
 import glob
 import json
 import os
+import webbrowser
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from livereload import Server
@@ -10,8 +11,9 @@ LIB_DIR = 'library'
 TEXTS_SUBDIR = 'books'
 IMAGES_SUBDIR = 'images'
 PAGES_SUBDIR = 'pages'
+STATIC_SUBDIR = 'static'
 BOOKS_PER_PAGE = 10
-PAGINATOR_LEN = 11
+PAGINATOR_LEN = 9
 
 
 def load_json(json_path):
@@ -27,23 +29,23 @@ def load_json(json_path):
 
 
 def make_paginator(page, max_page):
-    link_template = f'../../{LIB_DIR}/{PAGES_SUBDIR}/index#.html'
+    link_template = f'../../{LIB_DIR}/{PAGES_SUBDIR}/index*.html'
     xxx = []
     if max_page == 1:
         return xxx
-    ll = min(max_page + 1, PAGINATOR_LEN)
-    if ll <= max_page:
-        xxx.append(['первая', ''] if page == 1 else ['первая', link_template.replace('#', '1')])
-        xxx.append(['<<', ''] if page <= 1 else ['<<', link_template.replace('#', str(page - 1))])
-    bound = [page - ll // 2, page - ll // 2 + ll - 1]
-    offset = 1 - bound[0] if bound[0] < 1 else max_page - bound[1] + 1 if bound[1] > max_page else 0
+    frame_length = min(max_page, PAGINATOR_LEN)
+    if frame_length < max_page:
+        xxx.append(['первая', ''] if page == 1 else ['первая', link_template.replace('*', '1')])
+    xxx.append(['<<', ''] if page <= 1 else ['<<', link_template.replace('*', str(page - 1))])
+    frame = [page - frame_length // 2, page - frame_length // 2 + frame_length]
+    offset = 1 - frame[0] if frame[0] < 1 else max_page - frame[1] + 1 if frame[1] > max_page else 0
     if offset != 0:
-        bound = [x + offset for x in bound]
-    for i in range(*bound):
-        xxx.append([str(i), '#'] if i == page else [str(i), link_template.replace('#', str(i))])
-    if ll <= max_page:
-        xxx.append(['>>', ''] if page >= max_page else ['>>', link_template.replace('#', str(page + 1))])
-        xxx.append(['последняя', ''] if page == max_page else ['последняя', link_template.replace('#', str(max_page))])
+        frame = [x + offset for x in frame]
+    for i in range(*frame):
+        xxx.append([str(i), '#'] if i == page else [str(i), link_template.replace('*', str(i))])
+    xxx.append(['>>', ''] if page >= max_page else ['>>', link_template.replace('*', str(page + 1))])
+    if frame_length < max_page:
+        xxx.append(['последняя', ''] if page == max_page else ['последняя', link_template.replace('*', str(max_page))])
     return xxx
 
 
@@ -56,18 +58,18 @@ def on_reload():
     )
     template = env.get_template('template.html')
     end_page = (len(catalog) - 1) // BOOKS_PER_PAGE + 1
-    paginator_template = f'../../{LIB_DIR}/{PAGES_SUBDIR}/index#.html'
     for page_num, books in enumerate(list(chunked(catalog.values(), BOOKS_PER_PAGE)), 1):
         paginator = make_paginator(page_num, end_page)
         rendered_page = template.render(
             catalog=chunked(books, 2),
-            end_page=end_page,
-            current_page=page_num,
-            paginator_template=paginator_template,
-            paginator=paginator
+            paginator=paginator,
+            static_url=f'../../{LIB_DIR}/{STATIC_SUBDIR}'
         )
         with open(f'{LIB_DIR}/{PAGES_SUBDIR}/index{page_num}.html', 'w', encoding="utf8") as file:
             file.write(rendered_page)
+    template = env.get_template('start_template.html')
+    with open('./index.html', 'w', encoding="utf8") as file:
+        file.write(template.render(start_link=f'./{LIB_DIR}/{PAGES_SUBDIR}/index1.html'))
 
 
 def main():
@@ -77,7 +79,8 @@ def main():
     on_reload()
     server = Server()
     server.watch('template.html', on_reload)
-    server.serve(root=f'.', default_filename=f'./{LIB_DIR}/{PAGES_SUBDIR}/index1.html')
+    webbrowser.open('http://localhost:5500', new=0, autoraise=True)
+    server.serve(root=f'.', default_filename='index.html')
 
 
 if __name__ == '__main__':
