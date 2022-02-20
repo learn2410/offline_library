@@ -1,6 +1,7 @@
 import glob
 import json
 import os
+import sys
 import webbrowser
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -21,32 +22,39 @@ def load_json(json_path):
         with open(json_path, 'r') as file:
             catalog = json.load(file)
     else:
-        catalog = {}
+        print(f'file not found: {json_path}', file=sys.stderr)
+        print(f'Ошибка! Файл "{json_path}" не найден', file=sys.stdout)
+        sys.exit(1)
     for book in catalog.values():
         for key in ['img_src', 'book_path']:
             book.update({key: '../../' + book[key].replace('\\', '/')})
     return catalog
 
 
-def make_paginator(page, max_page):
-    link_template = f'../../{LIB_DIR}/{PAGES_SUBDIR}/index*.html'
-    xxx = []
-    if max_page == 1:
-        return xxx
-    frame_length = min(max_page, PAGINATOR_LEN)
-    if frame_length < max_page:
-        xxx.append(['первая', ''] if page == 1 else ['первая', link_template.replace('*', '1')])
-    xxx.append(['<<', ''] if page <= 1 else ['<<', link_template.replace('*', str(page - 1))])
-    frame = [page - frame_length // 2, page - frame_length // 2 + frame_length]
-    offset = 1 - frame[0] if frame[0] < 1 else max_page - frame[1] + 1 if frame[1] > max_page else 0
-    if offset != 0:
-        frame = [x + offset for x in frame]
-    for i in range(*frame):
-        xxx.append([str(i), '#'] if i == page else [str(i), link_template.replace('*', str(i))])
-    xxx.append(['>>', ''] if page >= max_page else ['>>', link_template.replace('*', str(page + 1))])
-    if frame_length < max_page:
-        xxx.append(['последняя', ''] if page == max_page else ['последняя', link_template.replace('*', str(max_page))])
-    return xxx
+def make_paginator(current_page, last_page):
+    def link(page_number):
+        return f'../../{LIB_DIR}/{PAGES_SUBDIR}/index{page_number}.html'
+
+    if last_page == 1:
+        return []
+    paginator = []
+    frame_length = min(last_page, PAGINATOR_LEN)
+    page = current_page - frame_length // 2 - 1
+    while len(paginator) < frame_length:
+        page += 1
+        if page < 1:
+            continue
+        elif page <= last_page:
+            paginator.append([str(page), '#' if page == current_page else link(page)])
+        else:
+            page_before = int(paginator[0][0]) - 1
+            paginator.insert(0, [str(page_before), link(page_before)])
+    paginator.insert(0, ['<<', link(current_page - 1) if current_page > 1 else ''])
+    paginator.append(['>>', link(current_page + 1) if current_page < last_page else ''])
+    if frame_length < last_page:
+        paginator.insert(0, ['первая', link(1) if current_page != 1 else ''])
+        paginator.append(['последняя', link(last_page) if current_page != last_page else ''])
+    return paginator
 
 
 def on_reload():

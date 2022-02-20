@@ -2,14 +2,14 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Title</title>
+  <title>Библиотека научной фантастики</title>
   <link rel="icon" href="{{ static_url }}/lg.png">
   <link href="{{ static_url }}/bootstrap.min.css" rel="stylesheet">
   <script defer src="{{ static_url }}/bootstrap.min.js"></script>
 </head>
   <body style="padding-top:70px;">
     <div class="container">
-      <nav class="navbar navbar-light bg-info fixed-top">
+      <nav class="navbar navbar-light fixed-top" style="background-color: #F6F4F0;" >
         <div class="container-fluid justify-content-center">
           <ul class="pagination justify-content-center pagination-sm">
             {% for page in paginator %}
@@ -39,7 +39,7 @@
             <div class="card mb-3" style="max-width: 540px;">
               <div class="row no-gutters">
                 <div class="col-md-4">
-                  <img src="{{ book['img_src']|urlencode }}" class="card-img" alt="обложка">
+                  <img src="{{ book['img_src']|urlencode }}" class="card-img" alt="обложка книги &laquo;{{ book['title'] }}&raquo;">
                 </div>
                 <div class="col-md-8">
                   <div class="card-body">
@@ -49,9 +49,7 @@
                       <small><b>{{ ', '.join(book['genre']) }}</b></small>
                     </p>
                     <p class="card-text">
-                      <small class="text-muted">
-                        <a href="{{ book['book_path']|urlencode }}" target="_blank" hreflang="ru"> читать </a>
-                      </small>
+                      <a href="{{ book['book_path']|urlencode }}" target="_blank" hreflang="ru"> читать </a>
                     </p>
                   </div>
                 </div>

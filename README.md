@@ -1,9 +1,9 @@
 # Верстка оффлайн библиотеки
 
 Программа позволяет сверстать оффлайн библиотеку на основе материалов скачанных утилитой
-  ```parce_tululu_category.py``` (https://github.com/learn2410/parse_library2)
+  ```parce_tululu_category.py```  доступной по ссылке: [https://github.com/learn2410/parse_library2](https://github.com/learn2410/parse_library2)
   
-- пример сайта: https://learn2410.github.io/offline_library   
+- пример сайта: [https://learn2410.github.io/offline_library](https://learn2410.github.io/offline_library)   
   
 ## Запуск скрипта
 
