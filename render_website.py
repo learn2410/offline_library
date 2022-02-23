@@ -22,38 +22,30 @@ def load_json(json_path):
         with open(json_path, 'r') as file:
             catalog = json.load(file)
     else:
-        print(f'file not found: {json_path}', file=sys.stderr)
-        print(f'Ошибка! Файл "{json_path}" не найден', file=sys.stdout)
-        sys.exit(1)
+        raise FileNotFoundError(f'file not found: {json_path}  <func: load_json>')
     for book in catalog.values():
         for key in ['img_src', 'book_path']:
             book.update({key: '../../' + book[key].replace('\\', '/')})
     return catalog
 
 
-def make_paginator(current_page, last_page):
-    def link(page_number):
-        return f'../../{LIB_DIR}/{PAGES_SUBDIR}/index{page_number}.html'
+def create_link(page_number):
+    return f'../../{LIB_DIR}/{PAGES_SUBDIR}/index{page_number}.html'
 
-    if last_page == 1:
+
+def make_paginator(current_page_num, last_page_num):
+    if last_page_num == 1:
         return []
+    frame_length = min(last_page_num, PAGINATOR_LEN)
+    first_frame_num = min(max(1, current_page_num - frame_length // 2), last_page_num - frame_length + 1)
     paginator = []
-    frame_length = min(last_page, PAGINATOR_LEN)
-    page = current_page - frame_length // 2 - 1
-    while len(paginator) < frame_length:
-        page += 1
-        if page < 1:
-            continue
-        elif page <= last_page:
-            paginator.append([str(page), '#' if page == current_page else link(page)])
-        else:
-            page_before = int(paginator[0][0]) - 1
-            paginator.insert(0, [str(page_before), link(page_before)])
-    paginator.insert(0, ['<<', link(current_page - 1) if current_page > 1 else ''])
-    paginator.append(['>>', link(current_page + 1) if current_page < last_page else ''])
-    if frame_length < last_page:
-        paginator.insert(0, ['первая', link(1) if current_page != 1 else ''])
-        paginator.append(['последняя', link(last_page) if current_page != last_page else ''])
+    for page_num in range(first_frame_num, first_frame_num + frame_length):
+        paginator.append([str(page_num), '#' if page_num == current_page_num else create_link(page_num)])
+    paginator.insert(0, ['<<', create_link(current_page_num - 1) if current_page_num > 1 else ''])
+    paginator.append(['>>', create_link(current_page_num + 1) if current_page_num < last_page_num else ''])
+    if frame_length < last_page_num:
+        paginator.insert(0, ['первая', create_link(1) if current_page_num != 1 else ''])
+        paginator.append(['последняя', create_link(last_page_num) if current_page_num != last_page_num else ''])
     return paginator
 
 
@@ -84,11 +76,17 @@ def main():
     os.makedirs(f'{LIB_DIR}/{PAGES_SUBDIR}', exist_ok=True)
     for file in glob.glob(f'{LIB_DIR}/{PAGES_SUBDIR}/index*.html'):
         os.remove(file)
-    on_reload()
-    server = Server()
-    server.watch('template.html', on_reload)
-    webbrowser.open('http://localhost:5500', new=0, autoraise=True)
-    server.serve(root=f'.', default_filename='index.html')
+    try:
+        on_reload()
+    except FileNotFoundError as e:
+        print(f'работа программы остановлена, ошибка: {str(e)}', file=sys.stdout)
+        print(str(e), file=sys.stderr)
+        sys.exit(1)
+    else:
+        server = Server()
+        server.watch('template.html', on_reload)
+        webbrowser.open('http://localhost:5500', new=0, autoraise=True)
+        server.serve(root=f'.', default_filename='index.html')
 
 
 if __name__ == '__main__':
