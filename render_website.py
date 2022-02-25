@@ -81,12 +81,10 @@ def main():
     except FileNotFoundError as e:
         print(f'работа программы остановлена, ошибка: {str(e)}', file=sys.stdout)
         print(str(e), file=sys.stderr)
-        sys.exit(1)
-    else:
-        server = Server()
-        server.watch('template.html', on_reload)
-        webbrowser.open('http://localhost:5500', new=0, autoraise=True)
-        server.serve(root=f'.', default_filename='index.html')
+    server = Server()
+    server.watch('template.html', on_reload)
+    webbrowser.open('http://localhost:5500', new=0, autoraise=True)
+    server.serve(root=f'.', default_filename='index.html')
 
 
 if __name__ == '__main__':
