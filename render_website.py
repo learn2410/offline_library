@@ -81,6 +81,7 @@ def main():
     except FileNotFoundError as e:
         print(f'работа программы остановлена, ошибка: {str(e)}', file=sys.stdout)
         print(str(e), file=sys.stderr)
+        return
     server = Server()
     server.watch('template.html', on_reload)
     webbrowser.open('http://localhost:5500', new=0, autoraise=True)
